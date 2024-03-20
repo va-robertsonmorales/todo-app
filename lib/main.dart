@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:todo_app/helpers/shared_preferences_helper.dart';
-import 'package:todo_app/screens/todo_list.dart';
+import 'package:todo_app/app/helpers/shared_preferences_helper.dart';
+import 'package:todo_app/resources/screens/todo.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,7 +17,13 @@ class MyTodoApp extends StatelessWidget {
     return MaterialApp(
         title: 'Todo App',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData.dark(),
+        theme: ThemeData.light().copyWith(
+          scaffoldBackgroundColor:
+              const Color(0xfff7f7f7), // Background color for the entire app
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Colors.white, // Background color for app bar
+          ),
+        ),
         initialRoute: '/',
         routes: {
           '/': (context) => const TodoList(),

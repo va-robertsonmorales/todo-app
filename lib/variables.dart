@@ -1,5 +1,5 @@
 class Variables {
-  static int primary = 0xffffbb29;
+  static int primary = 0xff112233; // 0xffffbb29;
   static int success = 0xff1ea446;
   static int success_v2 = 0xffc4eed0;
   static int info = 0xff329ee6;

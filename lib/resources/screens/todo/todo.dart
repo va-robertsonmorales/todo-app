@@ -3,9 +3,10 @@ import 'package:todo_app/app/models/todo.dart'; // * Import Model here
 import 'package:todo_app/resources/widgets/input_group.dart';
 import 'package:todo_app/resources/widgets/select_group.dart';
 import 'package:todo_app/resources/widgets/snack_bar_container.dart';
+import 'package:todo_app/resources/widgets/search.dart';
 // import 'package:todo_app/resources/widgets/empty_state.dart';
 import 'package:todo_app/variables.dart';
-import 'package:uuid/uuid.dart';
+import 'package:todo_app/app/helpers/helper.dart';
 
 class TodoList extends StatefulWidget {
   const TodoList({Key? key}) : super(key: key);
@@ -15,111 +16,159 @@ class TodoList extends StatefulWidget {
 }
 
 class TodoListState extends State<TodoList> {
-  List<Todo> todoList = [];
-  late Todo selectedTodo;
+  Helper helper = Helper();
   Variables variable = Variables();
+  List<Todo> todoList = [];
+  List<Todo> oldTodoList = [];
+  late Todo selectedTodo;
+  TextEditingController filterCategory = TextEditingController();
+  TextEditingController status = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+
+    // _seeder();
+    oldTodoList = todoList;
+
+    filterCategory.text = 'All';
+    status.text = 'All';
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const DrawerButton(),
       appBar: AppBar(
-        title: const Text('WhatTodo',
+        title: const Text('WhatToDo',
             style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.w600)),
-        leading: Padding(
-          padding: const EdgeInsets.fromLTRB(0, 8.0, 0, 8.0),
-          child: Image.asset(
-            'images/logo.png',
-            width: 40,
-            height: 40,
-          ),
-        ),
+        centerTitle: true,
         actions: [
-          const IconButton(
-            icon: Icon(Icons.search),
-            onPressed: null,
-          ),
-          IconButton(
-              icon: const Icon(Icons.filter_list_alt),
-              onPressed: () {
-                final formKey = GlobalKey<FormState>();
-                String category = 'Home';
+          Visibility(
+              visible: todoList.isNotEmpty,
+              child: IconButton(
+                icon: const Icon(Icons.search),
+                onPressed: () {
+                  showSearch(context: context, delegate: SearchDelegator());
+                },
+              )),
+          Visibility(
+            visible: todoList.isNotEmpty,
+            child: IconButton(
+                icon: const Icon(Icons.filter_list_alt),
+                onPressed: () {
+                  final filterFormKey = GlobalKey<FormState>();
 
-                showDialog(
-                    context: context,
-                    builder: (context) {
-                      return AlertDialog(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(6.0)),
-                        title: const Text(
-                          'Are you sure you?',
-                          style: TextStyle(fontSize: 18),
-                        ),
-                        content: Padding(
-                          padding: EdgeInsets.fromLTRB(0, variable.getPadding(),
-                              0, variable.getPadding()),
-                          child: Form(
-                              key: formKey,
-                              child: SingleChildScrollView(
-                                child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      SelectGroup(
-                                        value: category,
-                                        labelText: 'Category',
-                                        onItemSelected: (selectedItem) {
-                                          setState(() {
-                                            category = selectedItem;
-                                          });
-                                        },
-                                      ),
-                                      MaterialButton(
-                                          padding: EdgeInsets.fromLTRB(
-                                              28.0,
-                                              variable.getPadding(),
-                                              28.0,
-                                              variable.getPadding()),
-                                          color: Color(variable.getPrimary()),
-                                          shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(variable
-                                                      .getBorderRadius())),
-                                          minWidth: double.infinity,
-                                          child: const Text(
-                                            'Filter',
-                                            style: TextStyle(
-                                                fontSize: 16.0,
-                                                fontWeight: FontWeight.w600),
-                                          ),
-                                          onPressed: () {
-                                            if (formKey.currentState!
-                                                .validate()) {
-                                              // setState(() {
-
-                                              //   });
+                  showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(6.0)),
+                          title: const Text(
+                            'Filter Tasks',
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.w600),
+                          ),
+                          content: Padding(
+                            padding: EdgeInsets.fromLTRB(
+                                0,
+                                variable.getPadding(),
+                                0,
+                                variable.getPadding()),
+                            child: Form(
+                                key: filterFormKey,
+                                child: SingleChildScrollView(
+                                  child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        SelectGroup(
+                                          value: filterCategory.text,
+                                          labelText: 'Category',
+                                          options: const <String>[
+                                            'All',
+                                            'Home',
+                                            'Personal',
+                                            'Work'
+                                          ],
+                                          onItemSelected: (selectedItem) {
+                                            setState(() {
+                                              filterCategory.text =
+                                                  selectedItem.toString();
+                                            });
+                                          },
+                                        ),
+                                        SelectGroup(
+                                          value: status.text.toString(),
+                                          labelText: 'Status',
+                                          options: const [
+                                            'All',
+                                            'Pending',
+                                            'Completed'
+                                          ],
+                                          onItemSelected: (selectedItem) {
+                                            setState(() {
+                                              status.text = selectedItem;
+                                            });
+                                          },
+                                        ),
+                                        MaterialButton(
+                                            padding: EdgeInsets.fromLTRB(
+                                                28.0,
+                                                variable.getPadding(),
+                                                28.0,
+                                                variable.getPadding()),
+                                            color: Color(variable.getPrimary()),
+                                            textColor: Colors.white,
+                                            shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius
+                                                    .circular(variable
+                                                        .getBorderRadius())),
+                                            minWidth: double.infinity,
+                                            child: const Text(
+                                              'Filter',
+                                              style: TextStyle(
+                                                  fontSize: 16.0,
+                                                  fontWeight: FontWeight.w500),
+                                            ),
+                                            onPressed: () {
+                                              setState(() {
+                                                todoList = Todo
+                                                    .filterByCategoryAndStatus(
+                                                        oldTodoList,
+                                                        filterCategory.text
+                                                            .toString(),
+                                                        status.text.toString());
+                                              });
 
                                               Navigator.of(context).pop();
-                                            }
-                                          }),
-                                    ]),
-                              )),
-                        ),
-                        actions: <Widget>[],
-                        actionsAlignment: MainAxisAlignment.center,
-                        actionsPadding: const EdgeInsets.all(10),
-                      );
-                    });
-              })
+                                            }),
+                                      ]),
+                                )),
+                          ),
+                          // actions: <Widget>[],
+                          // actionsAlignment: MainAxisAlignment.center,
+                          // actionsPadding: const EdgeInsets.all(10),
+                        );
+                      });
+                }),
+          ),
         ],
       ),
       body: Container(
-        padding: const EdgeInsets.all(20),
+        // padding: EdgeInsets.all(8.0),
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(24.0)),
         child: todoList.isEmpty
             ? SizedBox(
                 width: double.infinity,
+                height: double.infinity,
                 child: Column(children: [
-                  Image.asset('/images/empty_state.png'),
+                  Container(height: 24.0),
+                  Image.asset(
+                    '/images/empty_state.png',
+                    width: 350,
+                  ),
                   Container(height: 24.0),
                   const Text(
                     "Awesome! Looks like you're free \n from tasks for now.",
@@ -131,28 +180,39 @@ class TodoListState extends State<TodoList> {
                       padding: EdgeInsets.fromLTRB(28.0, variable.getPadding(),
                           28.0, variable.getPadding()),
                       color: Color(variable.getPrimary()),
+                      textColor: Colors.white,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(
                               variable.getBorderRadius())),
                       child: const Text(
                         'Create Task',
                         style: TextStyle(
-                            fontSize: 16.0, fontWeight: FontWeight.w600),
+                            fontSize: 16.0, fontWeight: FontWeight.w500),
                       ),
                       onPressed: () => _createEditTask())
                 ]),
               )
-            : ListView.builder(
-                itemCount: todoList.length,
-                itemBuilder: (context, int index) {
-                  return toDoItemTile(index, todoList[index], context);
-                }),
+            : Container(
+                padding: EdgeInsets.all(variable.getPadding()),
+                child: ListView.builder(
+                    itemCount: todoList.length,
+                    itemBuilder: (context, int index) {
+                      return Container(
+                        color: Colors.white,
+                        child: Column(
+                          children: [
+                            toDoItemTile(index, todoList[index], context)
+                          ],
+                        ),
+                      );
+                    }),
+              ),
       ),
       floatingActionButton: todoList.isEmpty
           ? null
           : FloatingActionButton(
-              backgroundColor: const Color(0xffffbb29),
-              mini: true,
+              backgroundColor: Color(variable.getPrimary()),
+              foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                   borderRadius:
                       BorderRadius.circular(variable.getBorderRadius())),
@@ -205,7 +265,8 @@ class TodoListState extends State<TodoList> {
     };
 
     return ListTile(
-      contentPadding: const EdgeInsets.all(8.0),
+      contentPadding:
+          const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(variable.getBorderRadius())),
       title: properties['task'],
@@ -214,11 +275,6 @@ class TodoListState extends State<TodoList> {
       trailing: properties['delete'],
       onTap: todoItem.isCompleted ? null : properties['edit'],
     );
-  }
-
-  String generateGuid() {
-    var uuid = const Uuid();
-    return uuid.v4();
   }
 
   void _createEditTask([Todo? todo, bool isCreate = true, int index = 0]) {
@@ -253,6 +309,7 @@ class TodoListState extends State<TodoList> {
                           SelectGroup(
                             value: category,
                             labelText: 'Category',
+                            options: const ['Home', 'Personal', 'Work'],
                             onItemSelected: (selectedItem) {
                               setState(() {
                                 category = selectedItem;
@@ -271,6 +328,7 @@ class TodoListState extends State<TodoList> {
                                 28.0,
                                 variable.getPadding()),
                             color: Color(variable.getPrimary()),
+                            textColor: Colors.white,
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(
                                     variable.getBorderRadius())),
@@ -278,7 +336,7 @@ class TodoListState extends State<TodoList> {
                             child: const Text(
                               'Add Task',
                               style: TextStyle(
-                                  fontSize: 16.0, fontWeight: FontWeight.w600),
+                                  fontSize: 16.0, fontWeight: FontWeight.w500),
                             ),
                             onPressed: () {
                               if (formKey.currentState!.validate()) {
@@ -287,7 +345,7 @@ class TodoListState extends State<TodoList> {
                                 if (isCreate) {
                                   setState(() {
                                     todoList.add(Todo(
-                                        id: generateGuid(),
+                                        id: helper.generateGuid(),
                                         category: category,
                                         task: taskController.text.trim()));
                                   });
@@ -388,5 +446,25 @@ class TodoListState extends State<TodoList> {
             actionsPadding: const EdgeInsets.all(10),
           );
         });
+  }
+
+  void _seeder() {
+    oldTodoList = [
+      Todo(
+        task: 'Task 1',
+        category: 'Home',
+        isCompleted: false,
+      ),
+      Todo(
+        task: 'Task 2',
+        category: 'Personal',
+        isCompleted: false,
+      ),
+      Todo(
+        task: 'Task 3',
+        category: 'Work',
+        isCompleted: false,
+      ),
+    ];
   }
 }

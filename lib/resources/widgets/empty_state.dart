@@ -1,15 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:todo_app/variables.dart';
 
-class EmptyState extends StatefulWidget {
-  final Function(void)? onRedirect;
+class EmptyState extends StatelessWidget {
+  Variables variable = Variables();
 
-  const EmptyState({required this.onRedirect, Key? key}) : super(key: key);
-
-  @override
-  _EmptyStateState createState() => _EmptyStateState();
-}
-
-class _EmptyStateState extends State<EmptyState> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -19,24 +13,22 @@ class _EmptyStateState extends State<EmptyState> {
         Container(height: 24.0),
         const Text(
           "Awesome! Looks like you're free \n from tasks for now.",
-          style: TextStyle(fontSize: 18.0),
+          style: TextStyle(fontSize: 18.0, color: Colors.black87),
           textAlign: TextAlign.center,
         ),
         Container(height: 24.0),
         MaterialButton(
-            padding: const EdgeInsets.all(24.0),
-            color: const Color(0xffffbb29),
+            padding: EdgeInsets.fromLTRB(
+                28.0, variable.getPadding(), 28.0, variable.getPadding()),
+            color: Color(variable.getPrimary()),
             shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12.0)),
+                borderRadius:
+                    BorderRadius.circular(variable.getBorderRadius())),
+            onPressed: null,
             child: const Text(
               'Create Task',
-              style: TextStyle(fontSize: 16.0),
-            ),
-            onPressed: () {
-              if (widget.onRedirect != null) {
-                widget.onRedirect;
-              }
-            })
+              style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w600),
+            )),
       ]),
     );
   }

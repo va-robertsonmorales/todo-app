@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import 'package:todo_app/app/helpers/shared_preferences_helper.dart';
-import 'package:todo_app/resources/screens/todo.dart';
+// import 'package:todo_app/app/helpers/shared_preferences_helper.dart';
+import 'package:todo_app/resources/screens/todo/todo.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await SharedPreferencesHelper.init();
+  // WidgetsFlutterBinding.ensureInitialized();
+  // await SharedPreferencesHelper.init();
   runApp(const MyTodoApp());
 }
 

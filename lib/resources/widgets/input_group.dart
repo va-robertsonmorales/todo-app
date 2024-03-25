@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 
 class InputGroup extends StatefulWidget {
   final String labelText;
-  final String name;
   final TextEditingController? controller;
   final double spacing;
+  final bool isRichTextBox;
 
   const InputGroup(
       {required this.labelText,
-      required this.name,
       this.controller,
       this.spacing = 24.0,
+      this.isRichTextBox = false,
       Key? key})
       : super(key: key);
 
@@ -25,18 +25,24 @@ class InputGroupState extends State<InputGroup> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         TextFormField(
-          maxLength: 50,
+          maxLength: widget.isRichTextBox ? null : 50,
+          maxLines: widget.isRichTextBox ? null : 1,
           decoration: InputDecoration(
             labelText: widget.labelText,
             border: const OutlineInputBorder(),
           ),
           controller: widget.controller,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'This field is required.';
-            }
-            return null;
-          },
+          textInputAction:
+              widget.isRichTextBox ? TextInputAction.newline : null,
+          keyboardType: widget.isRichTextBox ? TextInputType.multiline : null,
+          validator: widget.isRichTextBox
+              ? null
+              : (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'This field is required.';
+                  }
+                  return null;
+                },
         ),
         SizedBox(height: widget.spacing),
       ],

@@ -1,19 +1,50 @@
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:todo_app/app/helpers/helper.dart';
 import 'package:todo_app/app/models/todo.dart';
 
-class ToDoListController {
+class ToDoListController extends ChangeNotifier {
   List<Todo> todoList = [];
 
-  Future<void> index() async {
-    final response = await http.get(
-        Uri.parse('https://955e-180-191-173-122.ngrok-free.app/api/todos'));
+  Helper helper = Helper();
 
-    if (response.statusCode == 200) {
-      // todoList.addAll();
-      return jsonDecode(response.body);
+  void addTodo(Todo todo) {
+    notifyListeners();
+  }
+
+  void updateTodo(int index, Todo todo) {
+    todoList[index] = todo;
+    notifyListeners();
+  }
+
+  void deleteTodo(int index) {
+    todoList.removeAt(index);
+    notifyListeners();
+  }
+
+  List<Todo> filterByCategoryAndStatus(
+      List<Todo> list, String category, String status) {
+    if (category == 'All') {
+      if (status == 'Completed') {
+        return list.where((element) => element.isCompleted == true).toList();
+      } else if (status == 'Pending') {
+        return list.where((element) => element.isCompleted == false).toList();
+      } else {
+        return list;
+      }
     } else {
-      throw Exception('Failed to load data');
+      if (status == 'Completed') {
+        return list
+            .where((element) =>
+                element.category == category && element.isCompleted == true)
+            .toList();
+      } else if (status == 'Pending') {
+        return list
+            .where((element) =>
+                element.category == category && element.isCompleted == false)
+            .toList();
+      } else {
+        return list.where((element) => element.category == category).toList();
+      }
     }
   }
 }
